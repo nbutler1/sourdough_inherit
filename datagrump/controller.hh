@@ -13,9 +13,7 @@ private:
   /* Add member variables here */
 
   /* Window size, measured in datagrams. (Original was 75.) */
-  unsigned int window_size_ = 100;
-
-  uint64_t delay_threshold_ms_ = 100;
+  float window_size_ = 10;
 
 public:
   /* Public interface for the congestion controller */
