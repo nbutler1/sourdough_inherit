@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <cmath>
 #include "controller.hh"
 #include "timestamp.hh"
 
@@ -13,15 +13,12 @@ Controller::Controller( const bool debug )
 /* Get current window size, in datagrams */
 unsigned int Controller::window_size()
 {
-  /* Default: fixed window size of 100 outstanding datagrams */
-  unsigned int the_window_size = 50;
-
   if ( debug_ ) {
     cerr << "At time " << timestamp_ms()
-	 << " window size is " << the_window_size << endl;
+	 << " window size is " << window_size_ << endl;
   }
 
-  return the_window_size;
+  return (unsigned int)window_size_;
 }
 
 /* A datagram was sent */
@@ -33,6 +30,9 @@ void Controller::datagram_was_sent( const uint64_t sequence_number,
 				    /* datagram was sent because of a timeout */ )
 {
   /* Default: take no action */
+  if ( after_timeout && window_size_ > 2 ) {
+    window_size_ /= 2;
+  }
 
   if ( debug_ ) {
     cerr << "At time " << send_timestamp
@@ -50,8 +50,17 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
 			       const uint64_t timestamp_ack_received )
                                /* when the ack was received (by sender) */
 {
-  /* Default: take no action */
-
+  uint64_t delay = timestamp_ack_received - send_timestamp_acked;
+  cerr << "Delay: " << delay << endl;
+  cerr << "Window Size: " << window_size_ << endl;
+  if(delay > 80){
+    window_size_ *= (1.0 - (0.6/window_size_));
+  }
+  if(window_size_ < 1)
+      window_size_ = 1;
+  if(delay < 80) {
+    window_size_ += (3.9/ floor(window_size_));
+  }
   if ( debug_ ) {
     cerr << "At time " << timestamp_ack_received
 	 << " received ack for datagram " << sequence_number_acked
@@ -65,5 +74,5 @@ void Controller::ack_received( const uint64_t sequence_number_acked,
    before sending one more datagram */
 unsigned int Controller::timeout_ms()
 {
-  return 1000; /* timeout of one second */
+  return 125; /* timeout of one second */
 }

@@ -12,6 +12,9 @@ private:
 
   /* Add member variables here */
 
+  /* Window size, measured in datagrams. (Original was 75.) */
+  float window_size_ = 10;
+
 public:
   /* Public interface for the congestion controller */
   /* You can change these if you prefer, but will need to change
